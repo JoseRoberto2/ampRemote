@@ -57,7 +57,7 @@ class Exec(object):
         self.botaoinput2=builder.get_object('in2')
 
         self.porta = builder.get_object('txt_porta')
-        self.Comunicacao=""
+
 
 
         #self.barraLow.range()
@@ -91,7 +91,9 @@ class Exec(object):
         #worker.start()
         #leitura = leituraSerial(str(self.porta.get_text()))
         #leitura.start()
-        atualiza=atualizaValores(self.barraVolume,self.barraGain,self.barraLow,self.barraTreble,self.atenuationR,self.atenuationL,queue_entrada)
+        vai=ComSerial(str(self.porta.get_text()),queue_entrada,queue_saida)
+        vai.start()
+        atualiza=atualizaValores(self.barraVolume,self.barraGain,self.barraLow,self.barraTreble,self.barraAttR,self.barraAttL,queue_entrada)
         atualiza.start()
 
     def actionButton(self,event):
@@ -100,21 +102,29 @@ class Exec(object):
 
     def scaleLow(self, widget):
         posicao=14-int(self.barraLow.get_value())
-        low = enviarSerial(self.bass,self.matBass[posicao],posicao,str(self.porta.get_text()))
-        low.start()
+        #low = enviarSerial(self.bass,self.matBass[posicao],posicao,str(self.porta.get_text()))
+        #low.start()
+        queue_saida.put(self.bass)
+        queue_saida.put(self.matBass[posicao])
+        queue_saida.put(posicao)
+        print"low"
 
 
     def scaleTreble(self,widget):
         posicao = 14-int(self.barraTreble.get_value())
-        treble = enviarSerial(self.treble, self.matTreble[posicao],posicao, str(self.porta.get_text()))
-        treble.start()
+        #treble = enviarSerial(self.treble, self.matTreble[posicao],posicao, str(self.porta.get_text()))
+        #treble.start()
+        queue_saida.put(self.treble)
+        queue_saida.put(self.matTreble[posicao])
+        queue_saida.put(posicao)
+        print"treble"
 
     def scaleVol(self, widget):
         #self.Comunicacao = serial.Serial('/dev/ttyACM1', 9600)
         posicao = 13-(int(self.barraVolume.get_value()))
         #time.sleep(1.8)
         #vol = enviarSerial(self.volume, posicao, self.Comunicacao)
-        print posicao
+        #print posicao
         #imprimir=chr(0B10)
         #imprimir2=chr(13-posicao)
         #self.Comunicacao.write(imprimir)
@@ -124,38 +134,57 @@ class Exec(object):
 
         #self.Comunicacao.close()
 
-        vol = enviarSerial(self.volume, self.matVol[posicao], posicao, str(self.porta.get_text()))
-        vol.start()
+        #vol = enviarSerial(self.volume, self.matVol[posicao], posicao, str(self.porta.get_text()))
+        #vol.start()
         #threads.append(vol)
+        queue_saida.put(self.volume)
+        queue_saida.put(self.matVol[posicao])
+        queue_saida.put(posicao)
+        print"vol"
 
     def scaleGain(self, widget):
         posicao = (int(self.barraGain.get_value()))
         print posicao
 
-        gain = enviarSerial(self.gainIn, self.matGainIn[posicao],posicao, str(self.porta.get_text()))
-        gain.start()
+        #gain = enviarSerial(self.gainIn, self.matGainIn[posicao],posicao, str(self.porta.get_text()))
+        #gain.start()
+        queue_saida.put(self.gainIn)
+        queue_saida.put(self.matGainIn[posicao])
+        queue_saida.put(posicao)
+        print"gain"
 
     def scaleAttR(self, widget):
         posicao = (int(self.barraAttR.get_value()))
         print posicao
 
-        attR = enviarSerial(self.atenuationR, self.matAtt[posicao],posicao, str(self.porta.get_text()))
-        attR.start()
+        #attR = enviarSerial(self.atenuationR, self.matAtt[posicao],posicao, str(self.porta.get_text()))
+        #attR.start()
+        queue_saida.put(self.atenuationR)
+        queue_saida.put(self.matAtt[posicao])
+        queue_saida.put(posicao)
+        print"attr"
 
 
     def scaleAttL(self, widget):
         posicao = (int(self.barraAttL.get_value()))
         print posicao
 
-        attL = enviarSerial(self.atenuationL, self.matAtt[posicao],posicao, str(self.porta.get_text()))
-        attL.start()
+        #attL = enviarSerial(self.atenuationL, self.matAtt[posicao],posicao, str(self.porta.get_text()))
+        #attL.start()
+        queue_saida.put(self.atenuationL)
+        queue_saida.put(self.matAtt[posicao])
+        queue_saida.put(posicao)
+        print"attl"
 
 
     def on_destroy(self, widget):
-        queue_entrada.put('sair')
+        queue_saida.put('sair')
         #self.Comunicacao.close()
+
         Gtk.main_quit()
+
         print("aki")
+
 
 
     def on_button_toggled(self,widget):
@@ -167,68 +196,46 @@ class Exec(object):
             print("botao2")
 
 
-    def RxSerial(self):
-        #porta=porta
-        #Comuni = serial.Serial(porta, 9600)
-        #while Exec.ComSerial:
-        while(True):
-        #for i in range(0,50):
-            #memoria = Comuni.read()
-            #print(memoria)
-            #value = Comuni.read()
-            #print(value)
-             print(str(self.porta.get_text()))
-             #time.sleep(1)
-
-class enviarSerial(Thread):
-    def __init__(self,memori,valor,posicao,porta, queue_entrada):
-        Thread.__init__(self)
-        self.memori=chr(memori)
-        self.valor=chr(valor)
-        self.porta=porta
-        self.posicao=chr(posicao)
-    def run(self):
-        #threadLock.acquire()
-        print(self.memori,self.valor,self.posicao)
-        self.Com = serial.Serial(self.porta, 9600)
-        #print(serial.tools.list_port)
-        self.Com.write(self.memori)
-        self.Com.write(self.valor)
-        self.Com.write(self.posicao)
-        self.Com.close()
-        #threadLock.release()
-
-class leituraSerial(Thread):
-    def __init__(self,porta):
+class ComSerial(Thread):
+    def __init__(self,porta, queue_entrada,queue_saida):
         Thread.__init__(self)
         self.porta=porta
-        self.Comuni = serial.Serial(self.porta,9600)
-
+        self.queue_entrada = queue_entrada
+        self.queue_saida= queue_saida
     def run(self):
-        while Exec.ComSerial:
+        #self.Com = serial.Serial(self.porta, 9600)
+        while True:
+            self.Com = serial.Serial(self.porta, 9600)
 
-            self.memoria = self.Comuni.read()
-            print(self.memoria)
+            print "atualizando"
+            # self.Com.flush()
+            testeRx=self.Com.readline()
+            #testeRx=bytes(testeRx)
+            if (testeRx=='255\r\n'):
+                i = 0
+                while i <= 6:
+                    temp=self.Com.readline()
+                    if (temp!='255\r\n'):
+                        'passou'
+                        queue_entrada.put(temp)
+                        print temp
+                        i += 1
 
-            value = self.Comuni.read()
-            print(self.memoria)
+            if(not queue_saida.empty()):
+                print("enviando")
+                A=queue_saida.get()
+                if (A=='sair'):
+                    break
+                B = queue_saida.get()
+                C = queue_saida.get()
+                self.Com.write(chr(A))
+                self.Com.write(chr(B))
+                self.Com.write(chr(C))
+                print A,B,C
 
-            print Exec.ComSerial
-            #print(Exec.barraVolume.get_value())
-            #muda =Exec
-            #muda.barraVolume.set_value(5)
-            #if (self.memoria==Exec.bass):
-            #    Exec.barraLow.set_value(self.value)
 
-            #elif(self.memoria==Exec.treble):
-            #    Exec.barraTreble.set_value(self.value)
-
-            if (self.memoria == 2):
-                muda=Exec
-                muda.pot()
-        print("saiu")
-        self.Comunicacao.close()
-
+            self.Com.close()
+        print "saiu"
 
 
 class atualizaValores(Thread):
@@ -240,24 +247,31 @@ class atualizaValores(Thread):
         self.sca4 = sca4
         self.sca5 = sca5
         self.sca6 = sca6
-        self.queue_entrada=queue_entrada
+        self.queue_entrada = queue_entrada
 
 
     def run(self):
-        self.sca1.set_value(4)
-        self.sca2.set_value(4)
-        self.sca3.set_value(4)
+        #self.sca1.set_value(4)
+        #self.sca2.set_value(4)
+        #self.sca3.set_value(4)
+        #print "entrou"
         while True:
-            print "funcio"
-
             if (not queue_entrada.empty()):
-                queue_entrada.get()
-                if (queue_entrada.get()=='sair'):
-                    break
+                A=queue_entrada.get()
+                #if (A=='sair'):
+                #    break
+                B = queue_entrada.get()
+                C = queue_entrada.get()
+                D = queue_entrada.get()
+                E = queue_entrada.get()
+                F = queue_entrada.get()
+                self.sca1.set_value(int(A))
+                self.sca2.set_value(int(B))
+                self.sca3.set_value(int(C))
+                self.sca4.set_value(int(D))
+                self.sca5.set_value(int(E))
+                self.sca6.set_value(int(F))
 
-
-#threadLock = threading.Lock()
-#threads = []
 
 if __name__ == "__main__":
 
@@ -268,8 +282,7 @@ if __name__ == "__main__":
     builder.add_from_file("ideAmp.glade")
     browser = Exec(builder, queue_entrada=queue_entrada, queue_saida=queue_saida)
 
-
-
     Gtk.main()
-
+    #queue_entrada.join()
+    #queue_saida.join()
     #Exec.ComSerial=False
