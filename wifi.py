@@ -17,21 +17,24 @@ s.connect((TCP_IP, TCP_PORT))
 
 while True:
     entrada2=str(input("verificar se o valor é par ou impar: "))
+    vai=10
+    s.send(str(vai))
+    print type(entrada2) is str
     if (entrada2=="sair"):
         break
     else:
         print entrada2
         s.send(entrada2)
     print("aguardando")
-    data = s.recv(BUFFER_SIZE)
-    time.sleep(1)
-    s.send("chegou")
-    temp = data.split()
-    print temp
-    entrada.put(temp[0])
-    __temp=entrada.get()
-    print __temp
+    #data = s.recv(BUFFER_SIZE)
+    #time.sleep(1)
+    #s.send("chegou")
+    #temp = data.split()
+    #print temp
+    #entrada.put(temp[0])
+    #__temp=entrada.get()
+    #print __temp
 
 s.close()
 
-print "received data:", data
+print "received data:"

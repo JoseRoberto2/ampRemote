@@ -3,6 +3,7 @@ from threading import Thread
 import serial
 import time
 from Queue import Queue
+import socket
 
 require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -91,8 +92,10 @@ class Exec(object):
         #worker.start()
         #leitura = leituraSerial(str(self.porta.get_text()))
         #leitura.start()
-        vai=ComSerial(str(self.porta.get_text()),queue_entrada,queue_saida)
-        vai.start()
+        ##vai=ComSerial(str(self.porta.get_text()),queue_entrada,queue_saida)
+        #vai.start()
+        sok=initSocket(str(self.porta.get_text()),queue_entrada,queue_saida)
+        sok.start()
         atualiza=atualizaValores(self.barraVolume,self.barraGain,self.barraLow,self.barraTreble,self.barraAttR,self.barraAttL,queue_entrada)
         atualiza.start()
 
@@ -179,6 +182,7 @@ class Exec(object):
 
     def on_destroy(self, widget):
         queue_saida.put('sair')
+        queue_entrada.put('sair')
         #self.Comunicacao.close()
 
         Gtk.main_quit()
@@ -238,6 +242,33 @@ class ComSerial(Thread):
         print "saiu"
 
 
+class initSocket(Thread):
+    def __init__(self, ip, queue_entrada, queue_saida):
+        Thread.__init__(self)
+        #super(initSocket, self).__init__()
+        self.__que_ent = queue_entrada
+        self.__que_sai = queue_saida
+        self.__ip = ip
+        self.__port = 4000
+        self.__buffer = 1024
+
+    def run(self):
+        print "iniciado socket"
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.__ip, self.__port))
+        while True:
+            print "esperando dado"
+            __dataIn=s.recv(self.__buffer)
+            print"chegou dado"
+            print __dataIn
+            time.sleep(1)
+            convData=__dataIn.split()
+            for a in convData:
+                self.__que_ent.put(a)
+
+
+        s.close()
+
 class atualizaValores(Thread):
     def __init__(self, sca1,sca2,sca3,sca4,sca5,sca6,queue_entrada):
         Thread.__init__(self)
@@ -257,7 +288,7 @@ class atualizaValores(Thread):
         #print "entrou"
         while True:
             if (not queue_entrada.empty()):
-                A=queue_entrada.get()
+                A = queue_entrada.get()
                 #if (A=='sair'):
                 #    break
                 B = queue_entrada.get()
@@ -265,12 +296,14 @@ class atualizaValores(Thread):
                 D = queue_entrada.get()
                 E = queue_entrada.get()
                 F = queue_entrada.get()
+                G = queue_entrada.get()
                 self.sca1.set_value(int(A))
                 self.sca2.set_value(int(B))
                 self.sca3.set_value(int(C))
                 self.sca4.set_value(int(D))
                 self.sca5.set_value(int(E))
                 self.sca6.set_value(int(F))
+                self.inputAud = G
 
 
 if __name__ == "__main__":
