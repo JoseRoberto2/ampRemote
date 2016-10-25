@@ -66,8 +66,17 @@ int anterior = 1;
 int lerA;
 boolean flagSend=false;
 boolean stateTemp=0;
+int contEnt=0;
+char comp1[10]="+IPD,0,8:";
 
-
+//variaveis do Rxwifi
+int tamanho=0;
+int RxByte[3];
+char leitura;
+String RxWIFI;
+boolean valida;
+int i=0;
+int in;
 
 
 byte memori;
@@ -83,6 +92,7 @@ void setup() {
   pinMode(GREEN_LED, OUTPUT);
   Wire.begin();
   Serial.begin(9600);
+  Serial1.begin(9600);
 
   pinMode(menu, INPUT_PULLUP);
   pinMode(A,INPUT_PULLUP);
@@ -91,8 +101,13 @@ void setup() {
  
  //attachInterrupt(A,encodeR,CHANGE);
  
-  lcd.print("iniciando!!!");
+  lcd.setCursor(0,0);
+  lcd.print("iniciando EQU!!!");
   inic();
+  lcd.setCursor(0,0);
+  lcd.print("iniciando WIFI!!");
+  WifiTCPinit();
+  enviaWIFI();
   lcd.clear();
 
 }
@@ -100,8 +115,10 @@ void setup() {
 void loop() {
 int conta=0;
 
-recebeSerial();
+//recebeSerial();
+  //enviaWIFI();
 
+  recebeWIFI();
   //lerA=digitalRead(A);
   //if(lerA!=anterior){
     //encodeR();
@@ -111,12 +128,12 @@ recebeSerial();
   if(digitalRead(baixo)==LOW){
     stateTemp=false;
     flagSend=true;
-    delay(300);
+    //delay(100);
   }
   if(digitalRead(cima)==LOW){
     stateTemp=true;
     flagSend=true;
-    delay(300);
+    //delay(100);
   }
 
   if (digitalRead(menu) == LOW) {
@@ -127,11 +144,11 @@ recebeSerial();
       stateMenu = 0;
     //Serial.print("menu");
     //Serial.println(stateMenu);
-    delay(500);
+    //delay(500);
   }
 
   
-//enviar quando acionado o encode
+//enviar quando acionado os butoes
   if(flagSend){
   
     memori=functionSelect[stateMenu];
@@ -181,7 +198,7 @@ recebeSerial();
   
     envairi2c(memori,value);
     //Serial.print(B11111111);
-
+    //enviaWIFI();
     
     //Serial.print(memori);
     //Serial.print(value);
@@ -290,10 +307,10 @@ recebeSerial();
       };
       //conta++;
       //if(conta==100){
-        Serial.println(B11111111);
-        for(int i=0;i<=5;i++){
-          Serial.print(ValueState[i]);
-        }
+        //Serial.println(B11111111);
+        //for(int i=0;i<=5;i++){
+         // Serial.print(ValueState[i]);
+        //}
         //conta=0;
       //}
         //envairi2c(functionSelect[0],matVol[0]);
@@ -386,4 +403,85 @@ void encodeR(){
   flagSend=true;
 }
 
+void enviaWIFI(){
+  
+  Serial1.println("AT+CIPSEND=0,21");
+  delay(20);
+  for(int i=0;i<7;i++){
+    Serial1.println(ValueState[i]);
+    //Serial.println("entrou");
+    }
+    Serial1.println("+++");
+    delay(1000);
+}
+
+void recebeWIFI(){
+if (Serial1.available() > 0) {
+    leitura = Serial1.read();
+    delay(10);
+    Serial.print(leitura);
+    //Serial.print(int(leitura));
+    RxWIFI.concat(leitura);
+    tamanho++;
+
+    if (RxWIFI.substring(0, 7) == "+IPD,0,") {
+        valida=true;
+      }
+      if(valida){
+        if(leitura==':'){
+          in=tamanho;
+        }
+          
+        if(leitura=='_'){
+          //out=tamanho;
+          RxByte[i]=RxWIFI.substring(in, tamanho).toInt();
+          i++;
+          if(i==3){
+            i=0;
+          //Serial.print("aki");
+          //Serial.println(RxByte[0],HEX);
+          //Serial.println(RxByte[1],HEX);
+          //Serial.println(RxByte[2],HEX);
+          //dado coletado e enviando para o equ
+          for(int j=0; j<7;j++){
+            //Serial.print("aki");
+              if (byte(RxByte[0])==functionSelect[j]){
+              //ValueState[i]=int(RxSerial[1]);
+              Serial.print("emm");
+              envairi2c(byte(RxByte[0]),byte(RxByte[1]));
+              //for(int j=0;j<maxMin[i];i++)
+              //if(RxSerial[1]==  
+              ValueState[j]=int(RxByte[2]);
+              break;
+            }
+          }//end for que envia para o equ
+          
+          }
+        }//atendeu e encontrou o _
+      }//end validado
+
+    if (leitura == '\n' || leitura=='\r') {
+      RxWIFI = "";
+      valida=false;
+      tamanho=0;
+    }
+
+  }//end available
+
+  
+  
+}
+
+void WifiTCPinit(){
+   Serial1.print("AT+RST\r\n");
+   delay(2000);
+   Serial1.print("AT+CWMODE=1\r\n");
+   delay(2000);
+   Serial1.print("AT+CWJAP=\"Roberto\",\"senha123\"\r\n");
+   delay(8000);
+   Serial1.print("AT+CIPMUX=1\r\n");
+   delay(2000);
+   Serial1.print("AT+CIPSERVER=1,4000\r\n");
+   delay(2000);
+}
 

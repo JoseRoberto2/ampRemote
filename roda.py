@@ -107,9 +107,9 @@ class Exec(object):
         posicao=14-int(self.barraLow.get_value())
         #low = enviarSerial(self.bass,self.matBass[posicao],posicao,str(self.porta.get_text()))
         #low.start()
-        queue_saida.put(self.bass)
-        queue_saida.put(self.matBass[posicao])
-        queue_saida.put(posicao)
+        queue_saida.put(str(self.bass))
+        queue_saida.put(str(self.matBass[posicao]))
+        queue_saida.put(str(posicao))
         print"low"
 
 
@@ -117,9 +117,9 @@ class Exec(object):
         posicao = 14-int(self.barraTreble.get_value())
         #treble = enviarSerial(self.treble, self.matTreble[posicao],posicao, str(self.porta.get_text()))
         #treble.start()
-        queue_saida.put(self.treble)
-        queue_saida.put(self.matTreble[posicao])
-        queue_saida.put(posicao)
+        queue_saida.put(str(self.treble))
+        queue_saida.put(str(self.matTreble[posicao]))
+        queue_saida.put(str(posicao))
         print"treble"
 
     def scaleVol(self, widget):
@@ -140,9 +140,15 @@ class Exec(object):
         #vol = enviarSerial(self.volume, self.matVol[posicao], posicao, str(self.porta.get_text()))
         #vol.start()
         #threads.append(vol)
-        queue_saida.put(self.volume)
-        queue_saida.put(self.matVol[posicao])
-        queue_saida.put(posicao)
+        #queue_saida.put(self.volume)
+        #queue_saida.put(self.matVol[posicao])
+        #queue_saida.put(posicao)
+
+        queue_saida.put(str(self.volume))
+        #time.sleep(1)
+        queue_saida.put(str(self.matVol[posicao]))
+        #time.sleep(1)
+        queue_saida.put(str(posicao))
         print"vol"
 
     def scaleGain(self, widget):
@@ -151,9 +157,9 @@ class Exec(object):
 
         #gain = enviarSerial(self.gainIn, self.matGainIn[posicao],posicao, str(self.porta.get_text()))
         #gain.start()
-        queue_saida.put(self.gainIn)
-        queue_saida.put(self.matGainIn[posicao])
-        queue_saida.put(posicao)
+        queue_saida.put(str(self.gainIn))
+        queue_saida.put(str(self.matGainIn[posicao]))
+        queue_saida.put(str(posicao))
         print"gain"
 
     def scaleAttR(self, widget):
@@ -162,9 +168,9 @@ class Exec(object):
 
         #attR = enviarSerial(self.atenuationR, self.matAtt[posicao],posicao, str(self.porta.get_text()))
         #attR.start()
-        queue_saida.put(self.atenuationR)
-        queue_saida.put(self.matAtt[posicao])
-        queue_saida.put(posicao)
+        queue_saida.put(str(self.atenuationR))
+        queue_saida.put(str(self.matAtt[posicao]))
+        queue_saida.put(str(posicao))
         print"attr"
 
 
@@ -174,9 +180,9 @@ class Exec(object):
 
         #attL = enviarSerial(self.atenuationL, self.matAtt[posicao],posicao, str(self.porta.get_text()))
         #attL.start()
-        queue_saida.put(self.atenuationL)
-        queue_saida.put(self.matAtt[posicao])
-        queue_saida.put(posicao)
+        queue_saida.put(str(self.atenuationL))
+        queue_saida.put(str(self.matAtt[posicao]))
+        queue_saida.put(str(posicao))
         print"attl"
 
 
@@ -232,9 +238,9 @@ class ComSerial(Thread):
                     break
                 B = queue_saida.get()
                 C = queue_saida.get()
-                self.Com.write(chr(A))
-                self.Com.write(chr(B))
-                self.Com.write(chr(C))
+                self.Com.write(A)
+                self.Com.write(B)
+                self.Com.write(C)
                 print A,B,C
 
 
@@ -257,16 +263,39 @@ class initSocket(Thread):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.__ip, self.__port))
         while True:
-            print "esperando dado"
-            __dataIn=s.recv(self.__buffer)
-            print"chegou dado"
-            print __dataIn
-            time.sleep(1)
-            convData=__dataIn.split()
-            for a in convData:
-                self.__que_ent.put(a)
 
 
+
+
+            #recebe dado do mcu
+            #print "esperando dado"
+            #__dataIn=s.recv(self.__buffer)
+            #print"chegou dado"
+            #print __dataIn
+            #time.sleep(1)
+            #convData=__dataIn.split()
+            #for a in convData:
+             #   self.__que_ent.put(a)
+
+
+
+            #envia dado para o mcu
+            if not queue_saida.empty():
+                print "enviando"
+                A = queue_saida.get()+"_"
+                if A == "sair_":
+                    break
+                B = queue_saida.get()+"_"
+                C = queue_saida.get()+"_"
+                s.send(A)
+                time.sleep(1)
+                s.send(B)
+                time.sleep(1)
+                s.send(C)
+                time.sleep(1)
+
+                print A, B, C
+        print("saiu")
         s.close()
 
 class atualizaValores(Thread):
@@ -289,8 +318,8 @@ class atualizaValores(Thread):
         while True:
             if (not queue_entrada.empty()):
                 A = queue_entrada.get()
-                #if (A=='sair'):
-                #    break
+                if (A=='sair'):
+                    break
                 B = queue_entrada.get()
                 C = queue_entrada.get()
                 D = queue_entrada.get()

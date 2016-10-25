@@ -17,8 +17,8 @@ s.connect((TCP_IP, TCP_PORT))
 
 while True:
     entrada2=str(input("verificar se o valor é par ou impar: "))
-    vai=10
-    s.send(str(vai))
+    #vai=10
+    #s.send(str(vai))
     print type(entrada2) is str
     if (entrada2=="sair"):
         break
