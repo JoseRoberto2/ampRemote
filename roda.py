@@ -287,12 +287,13 @@ class initSocket(Thread):
                     break
                 B = queue_saida.get()+"_"
                 C = queue_saida.get()+"_"
-                s.send(A)
-                time.sleep(1)
-                s.send(B)
-                time.sleep(1)
-                s.send(C)
-                time.sleep(1)
+                Tx=A+','+B+','+C
+                s.send(Tx)
+                #time.sleep(0.5)
+                #s.send(B)
+                #time.sleep(1)
+                #s.send(C)
+                #time.sleep(1)
 
                 print A, B, C
         print("saiu")

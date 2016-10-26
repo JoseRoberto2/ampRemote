@@ -107,23 +107,15 @@ void setup() {
   lcd.setCursor(0,0);
   lcd.print("iniciando WIFI!!");
   WifiTCPinit();
-  enviaWIFI();
+  //enviaWIFI();
   lcd.clear();
 
 }
 
 void loop() {
-int conta=0;
 
-//recebeSerial();
-  //enviaWIFI();
 
-  recebeWIFI();
-  //lerA=digitalRead(A);
-  //if(lerA!=anterior){
-    //encodeR();
-    //anterior = !anterior;
-  //}
+
 
   if(digitalRead(baixo)==LOW){
     stateTemp=false;
@@ -197,11 +189,6 @@ int conta=0;
       };
   
     envairi2c(memori,value);
-    //Serial.print(B11111111);
-    //enviaWIFI();
-    
-    //Serial.print(memori);
-    //Serial.print(value);
     flagSend=false;
   }
   //lcd.clear();
@@ -305,15 +292,10 @@ int conta=0;
           break;
         default:;
       };
-      //conta++;
-      //if(conta==100){
-        //Serial.println(B11111111);
-        //for(int i=0;i<=5;i++){
-         // Serial.print(ValueState[i]);
-        //}
-        //conta=0;
-      //}
-        //envairi2c(functionSelect[0],matVol[0]);
+
+  recebeWIFI();
+  
+
 }
 void inic() {
   //Serial.println("startInic");
@@ -417,8 +399,9 @@ void enviaWIFI(){
 
 void recebeWIFI(){
 if (Serial1.available() > 0) {
+    //delay(100);
     leitura = Serial1.read();
-    delay(10);
+    
     Serial.print(leitura);
     //Serial.print(int(leitura));
     RxWIFI.concat(leitura);
@@ -428,31 +411,33 @@ if (Serial1.available() > 0) {
         valida=true;
       }
       if(valida){
-        if(leitura==':'){
+        if(leitura==':'|| leitura==','){
           in=tamanho;
         }
           
-        if(leitura=='_'){
+        if(leitura=='_' || leitura==')'){
           //out=tamanho;
           RxByte[i]=RxWIFI.substring(in, tamanho).toInt();
           i++;
           if(i==3){
             i=0;
           //Serial.print("aki");
-          //Serial.println(RxByte[0],HEX);
-          //Serial.println(RxByte[1],HEX);
-          //Serial.println(RxByte[2],HEX);
+          //Serial.println(RxByte[0]);
+          //Serial.println(RxByte[1]);
+          //Serial.println(RxByte[2]);
           //dado coletado e enviando para o equ
+          envairi2c(RxByte[0],RxByte[1]);
           for(int j=0; j<7;j++){
             //Serial.print("aki");
-              if (byte(RxByte[0])==functionSelect[j]){
+              
+              if (RxByte[0]==functionSelect[j]){
               //ValueState[i]=int(RxSerial[1]);
-              Serial.print("emm");
-              envairi2c(byte(RxByte[0]),byte(RxByte[1]));
+              //Serial.print("emm");
+              
               //for(int j=0;j<maxMin[i];i++)
               //if(RxSerial[1]==  
               ValueState[j]=int(RxByte[2]);
-              break;
+              //break;
             }
           }//end for que envia para o equ
           
