@@ -25,6 +25,8 @@ LCD pin              Connect to
  =================================
 */
 
+#define timeTX 2000
+
 byte matGainIn[16] = {B00000000, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111, B00001000, B00001001, B00001010, B00001011, B00001100, B00001101, B00001110, B00001111};
 byte matVol[14] = {B00000000, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111, B00001000, B00010000, B00011000, B00100000, B00101000, B00111000};
 byte matBass[15] = {B00000000, B00000001, B00000010, B00000011, B00000100, B00000101, B00000110, B00000111, B00001110, B00001101, B00001100, B00001011, B00001010, B00001001, B00001000};
@@ -52,6 +54,7 @@ const int cima = P2_4;
 const int baixo = P1_5;
 const int A=P8_1;
 const int B=P8_2;
+
 
 int stateMenu = 0;
 //int stateVol = 7;
@@ -83,6 +86,9 @@ byte memori;
 byte value;
 char RxSerial[3];
 String ValoresLCD;
+byte flagChegou=0;
+
+int timeTxcurent=0;
 
 LiquidCrystal lcd(P2_0, P2_6, P4_3, P4_0, P3_7, P1_2);
 
@@ -120,12 +126,12 @@ void loop() {
   if(digitalRead(baixo)==LOW){
     stateTemp=false;
     flagSend=true;
-    //delay(100);
+    delay(100);
   }
   if(digitalRead(cima)==LOW){
     stateTemp=true;
     flagSend=true;
-    //delay(100);
+    delay(100);
   }
 
   if (digitalRead(menu) == LOW) {
@@ -136,7 +142,7 @@ void loop() {
       stateMenu = 0;
     //Serial.print("menu");
     //Serial.println(stateMenu);
-    //delay(500);
+    delay(500);
   }
 
   
@@ -190,6 +196,7 @@ void loop() {
   
     envairi2c(memori,value);
     flagSend=false;
+    enviaWIFI();
   }
   //lcd.clear();
 
@@ -293,7 +300,13 @@ void loop() {
         default:;
       };
 
+  
   recebeWIFI();
+  //if((millis()-timeTxcurent)>=timeTX){
+    //timeTxcurent=millis();
+    //enviaWIFI();  
+  //}
+  
   
 
 }
@@ -342,6 +355,7 @@ void envairi2c(byte funcao, byte value) {
 void recebeSerial() {
   //int i=0;
   if (Serial.available()>0){
+    
     RxSerial[0] = Serial.read();
     delay(10);
     RxSerial[1] = Serial.read();
@@ -386,20 +400,22 @@ void encodeR(){
 }
 
 void enviaWIFI(){
-  
-  Serial1.println("AT+CIPSEND=0,21");
-  delay(20);
-  for(int i=0;i<7;i++){
-    Serial1.println(ValueState[i]);
-    //Serial.println("entrou");
-    }
-    Serial1.println("+++");
-    delay(1000);
+  //if(flagChegou==0){
+    Serial1.println("AT+CIPSEND=0,21");
+    delay(20);
+    for(int i=0;i<7;i++){
+      Serial1.println(ValueState[i]);
+      //Serial.println("entrou");
+      }
+      Serial1.println("+++");
+      delay(1000);
+  //}
 }
 
 void recebeWIFI(){
 if (Serial1.available() > 0) {
     //delay(100);
+    //flagChegou=1;
     leitura = Serial1.read();
     
     Serial.print(leitura);
@@ -411,11 +427,11 @@ if (Serial1.available() > 0) {
         valida=true;
       }
       if(valida){
-        if(leitura==':'|| leitura==','){
+        if(leitura==':'){
           in=tamanho;
         }
           
-        if(leitura=='_' || leitura==')'){
+        if(leitura=='_'){
           //out=tamanho;
           RxByte[i]=RxWIFI.substring(in, tamanho).toInt();
           i++;
@@ -437,7 +453,9 @@ if (Serial1.available() > 0) {
               //for(int j=0;j<maxMin[i];i++)
               //if(RxSerial[1]==  
               ValueState[j]=int(RxByte[2]);
-              //break;
+              flagChegou=0;
+              break;
+              
             }
           }//end for que envia para o equ
           

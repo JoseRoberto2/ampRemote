@@ -256,48 +256,57 @@ class initSocket(Thread):
         self.__que_sai = queue_saida
         self.__ip = ip
         self.__port = 4000
-        self.__buffer = 1024
 
     def run(self):
         print "iniciado socket"
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.__ip, self.__port))
+        recebe=recebeValores(conexao=s,queue_entrada=queue_entrada)
+        recebe.start()
+
         while True:
-
-
-
-
-            #recebe dado do mcu
-            #print "esperando dado"
-            #__dataIn=s.recv(self.__buffer)
-            #print"chegou dado"
-            #print __dataIn
-            #time.sleep(1)
-            #convData=__dataIn.split()
-            #for a in convData:
-             #   self.__que_ent.put(a)
-
-
-
-            #envia dado para o mcu
+            flagSend=False
+            # envia dado para o mcu
             if not queue_saida.empty():
+                flagSend=True
                 print "enviando"
-                A = queue_saida.get()+"_"
+                A = queue_saida.get() + "_"
                 if A == "sair_":
                     break
-                B = queue_saida.get()+"_"
-                C = queue_saida.get()+"_"
-                Tx=A+','+B+','+C
-                s.send(Tx)
-                #time.sleep(0.5)
-                #s.send(B)
-                #time.sleep(1)
-                #s.send(C)
-                #time.sleep(1)
+                B = queue_saida.get() + "_"
+                C = queue_saida.get() + "_"
+                # Tx=A+','+B+','+C
+                s.send(A)
+                time.sleep(0.3)
+                s.send(B)
+                time.sleep(0.3)
+                s.send(C)
+                time.sleep(0.3)
 
                 print A, B, C
         print("saiu")
         s.close()
+
+class recebeValores(Thread):
+    def __init__(self,conexao,queue_entrada):
+        Thread.__init__(self)
+        self.conexao=conexao
+        self.queue_ent=queue_entrada
+        self.__buffer = 15
+
+    def run(self):
+        # recebe dado do mcu
+        while True:
+            print "esperando dado"
+            #time.sleep(3)
+            __dataIn = self.conexao.recv(self.__buffer)
+            print"chegou dado"
+            print __dataIn
+            convData = __dataIn.split()
+            for a in convData:
+                self.queue_ent.put(a)
+
+
 
 class atualizaValores(Thread):
     def __init__(self, sca1,sca2,sca3,sca4,sca5,sca6,queue_entrada):
