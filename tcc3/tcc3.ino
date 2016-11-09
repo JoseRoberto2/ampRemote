@@ -96,13 +96,14 @@ LiquidCrystal lcd(P2_0, P2_6, P4_3, P4_0, P3_7, P1_2);
 void setup() {
   pinMode(RED_LED, OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
+  //pinMode(P1_4,OUTPUT);
   Wire.begin();
   Serial.begin(9600);
   Serial1.begin(9600);
 
   pinMode(menu, INPUT_PULLUP);
-  pinMode(A,INPUT_PULLUP);
-  pinMode(B,INPUT_PULLUP);
+  //pinMode(A,INPUT_PULLUP);
+  //pinMode(B,INPUT_PULLUP);
   lcd.begin(16,2);
  
  //attachInterrupt(A,encodeR,CHANGE);
@@ -115,7 +116,7 @@ void setup() {
   WifiTCPinit();
   //enviaWIFI();
   lcd.clear();
-
+  //digitalWrite(P1_4,LOW);
 }
 
 void loop() {
@@ -126,12 +127,12 @@ void loop() {
   if(digitalRead(baixo)==LOW){
     stateTemp=false;
     flagSend=true;
-    delay(100);
+    delay(300);
   }
   if(digitalRead(cima)==LOW){
     stateTemp=true;
     flagSend=true;
-    delay(100);
+    delay(300);
   }
 
   if (digitalRead(menu) == LOW) {
@@ -401,9 +402,9 @@ void encodeR(){
 
 void enviaWIFI(){
   //if(flagChegou==0){
-    Serial1.println("AT+CIPSEND=0,21");
+    Serial1.println("AT+CIPSEND=0,18");
     delay(20);
-    for(int i=0;i<7;i++){
+    for(int i=0;i<6;i++){
       Serial1.println(ValueState[i]);
       //Serial.println("entrou");
       }
@@ -427,7 +428,7 @@ if (Serial1.available() > 0) {
         valida=true;
       }
       if(valida){
-        if(leitura==':'){
+        if(leitura==':' ){
           in=tamanho;
         }
           
@@ -447,6 +448,9 @@ if (Serial1.available() > 0) {
             //Serial.print("aki");
               
               if (RxByte[0]==functionSelect[j]){
+                Serial.println(RxByte[0]);
+                Serial.println(RxByte[1]);
+                Serial.println(RxByte[2]);
               //ValueState[i]=int(RxSerial[1]);
               //Serial.print("emm");
               
@@ -464,6 +468,7 @@ if (Serial1.available() > 0) {
       }//end validado
 
     if (leitura == '\n' || leitura=='\r') {
+      
       RxWIFI = "";
       valida=false;
       tamanho=0;

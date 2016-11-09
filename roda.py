@@ -275,13 +275,14 @@ class initSocket(Thread):
                     break
                 B = queue_saida.get() + "_"
                 C = queue_saida.get() + "_"
-                # Tx=A+','+B+','+C
+                Tx='2'+','+'_16'+','+'_7'+','
+                #s.send(Tx)
                 s.send(A)
-                time.sleep(0.3)
+                time.sleep(1)
                 s.send(B)
-                time.sleep(0.3)
+                time.sleep(1)
                 s.send(C)
-                time.sleep(0.3)
+                time.sleep(1)
 
                 print A, B, C
         print("saiu")
@@ -292,7 +293,7 @@ class recebeValores(Thread):
         Thread.__init__(self)
         self.conexao=conexao
         self.queue_ent=queue_entrada
-        self.__buffer = 15
+        self.__buffer = 18
 
     def run(self):
         # recebe dado do mcu
@@ -335,14 +336,15 @@ class atualizaValores(Thread):
                 D = queue_entrada.get()
                 E = queue_entrada.get()
                 F = queue_entrada.get()
-                G = queue_entrada.get()
+                #G = queue_entrada.get()
+                time.sleep(1)
                 self.sca1.set_value(int(A))
                 self.sca2.set_value(int(B))
                 self.sca3.set_value(int(C))
                 self.sca4.set_value(int(D))
                 self.sca5.set_value(int(E))
                 self.sca6.set_value(int(F))
-                self.inputAud = G
+                #self.inputAud = G
 
 
 if __name__ == "__main__":
