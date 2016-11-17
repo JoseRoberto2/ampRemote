@@ -427,6 +427,12 @@ if (Serial1.available() > 0) {
     if (RxWIFI.substring(0, 7) == "+IPD,0,") {
         valida=true;
       }
+    if(RxWIFI.substring(0,9) == "0,CONNECT"){
+      Serial.println("conectou");
+      lcd.setCursor(0,0);
+      lcd.print("conetando");
+    }
+    
       if(valida){
         if(leitura==':' ){
           in=tamanho;
